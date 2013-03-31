@@ -86,6 +86,7 @@ asmlinkage int sys_net_unlock(){
     }
     else if(ty==NET_LOCK_USE){
         atomic_dec(&reader);
+        current->policy=current->oldpolicy;
         return 1;
     }
     return -1;
