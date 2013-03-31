@@ -544,22 +544,20 @@ static struct root_domain def_root_domain;
  */
  
 struct edf_task{
-	struct rb_node edf_node;
+	struct rb_node edf_rb_node;
 	unsigned long absolute_deadline;
 	struct list_head edf_list_node;
 	struct task_struct *task;	
 };
 
 struct edf_rq{
-	struct rb_node edf_root;
-	struct list_head edf_list;
+	struct rb_root edf_rb_root;
+	struct list_head edf_list_head;
 	atomic_t nr_running;
 };
 
 struct rq {
-#ifdef CONFIG_SCHED_EDF_POLICY
-	struct edf_rq edf_rq;
-#endif
+
 	/* runqueue lock: */
 	spinlock_t lock;
 
@@ -581,6 +579,7 @@ struct rq {
 	u64 nr_switches;
 
 	struct cfs_rq cfs;
+	struct edf_rq edf_rq;
 	struct rt_rq rt;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -1678,17 +1677,8 @@ static void cfs_rq_set_shares(struct cfs_rq *cfs_rq, unsigned long shares)
 #include "sched_stats.h"
 #include "sched_idletask.c"
 #include "sched_fair.c"
-#include "sched_rt.c"
-
-#ifdef CONFIG_SCHED_EDF_POLICY
 #include "sched_edf.c"
-#endif
-
-#ifdef CONFIG_SCHED_EDF_POLICY
-	#define sched_class_highest (&edf_sched_class)
-#else
-	#define sched_class_highest (&rt_sched_class)
-#endif
+#include "sched_rt.c"
 
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
@@ -8488,12 +8478,13 @@ void __init sched_init(void)
 		struct rq *rq;
 
 		rq = cpu_rq(i);
-#ifdef CONFIG_SCHED_EDF_POLICY
-		init_edf_rq(&rq->edf_rq);
-#endif
+
 		spin_lock_init(&rq->lock);
 		rq->nr_running = 0;
 		init_cfs_rq(&rq->cfs, rq);
+ #ifdef CONFIG_SCHED_EDF_POLICY
+		init_edf_rq(&rq->edf_rq);
+#endif
 		init_rt_rq(&rq->rt, rq);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		init_task_group.shares = init_task_group_load;
