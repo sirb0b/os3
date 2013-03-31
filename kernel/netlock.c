@@ -44,6 +44,7 @@ asmlinkage int sys_net_lock(netlock_t type, u_int16_t timeout_val){
                 flag=0;
             	int nr=atomic_read(&counter);
             	if(nr==0) eD=jiffies+timeout_val;
+            	current->absolute_deadline=eD;
             	atomic_inc(&counter);
             	if(jiffies+timeout_val<eD){
             		eD=jiffies+timeout_val;
