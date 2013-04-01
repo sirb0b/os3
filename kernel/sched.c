@@ -5357,7 +5357,9 @@ recheck:
 		policy = oldpolicy = p->policy;
 	else if (policy != SCHED_FIFO && policy != SCHED_RR &&
 			policy != SCHED_NORMAL && policy != SCHED_BATCH &&
-			policy != SCHED_IDLE)
+			policy != SCHED_IDLE 
+		 &&policy!=SCHED_EDF
+)
 		return -EINVAL;
 #ifdef CONFIG_SCHED_EDF_POLICY
 	if(policy==SCHED_EDF){
@@ -5446,8 +5448,8 @@ recheck:
 	}
 	
 #ifdef CONFIG_SCHED_EDF_POLICY
-	if(policy==SCHED_CASIO){
-		add_casio_task_2_list(&rq->casio_rq,p);
+	if(policy==SCHED_EDF){
+		add_edf_task_2_list(&rq->edf_rq,p);
 	}
 #endif
 	update_rq_clock(rq);
