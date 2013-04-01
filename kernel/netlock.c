@@ -43,11 +43,11 @@ asmlinkage int sys_net_lock(netlock_t type, u_int16_t timeout_val){
             if(wri!=0){
                 flag=0;
             	int nr=atomic_read(&counter);
-            	if(nr==0) eD=jiffies+timeout_val;
+            	if(nr==0) eD=jiffies+timeout_val*HZ;
             	current->absolute_deadline=eD;
             	atomic_inc(&counter);
-            	if(jiffies+timeout_val<eD){
-            		eD=jiffies+timeout_val;
+            	if(jiffies+timeout_val*HZ<eD){
+            		eD=jiffies+timeout_val*HZ;
             		printk("eD UPDATED-> %d\n",eD);
             	}
             	current->oldpolicy=current->policy;
@@ -95,7 +95,9 @@ asmlinkage int sys_net_unlock(){
 
 void my_timer_wakeup(){
 	printk("<1>GET INTO TIMER\n");
-        atomic_dec(&writer);
+	int cto=atomic_read(&writer);
+	if(cto>0)
+       			 atomic_dec(&writer);
         printk("<1>TIMEUPWAKEUP\n");
         int ct=atomic_read(&counter);
 	atomic_add(ct,&reader);
